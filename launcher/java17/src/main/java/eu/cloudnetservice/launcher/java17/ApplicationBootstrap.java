@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -41,6 +41,7 @@ final class ApplicationBootstrap {
     // to give a method handle with private class access into the generator. While this breaks up the jvm
     // encapsulation partly, it is way better than trying even more hacky stuff like guice or graal do to
     // gain access into the internals.
+    "--add-opens", "java.base/java.nio=ALL-UNNAMED",
     "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED");
   private static final RuntimeMXBean RUNTIME_MX_BEAN = ManagementFactory.getRuntimeMXBean();
 
@@ -65,7 +66,7 @@ final class ApplicationBootstrap {
       .toString();
 
     // begin the process building
-    Set<String> arguments = new LinkedHashSet<>();
+    List<String> arguments = new ArrayList<>();
     arguments.add(resolveJavaExecutable());
 
     // remove the xms and xmx options as we want to set them later on

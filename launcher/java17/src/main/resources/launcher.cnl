@@ -95,3 +95,7 @@ var cloudnet.node.memory 256
 # These transports are platform optimized, generally generate less garbage and improve performance over the non-native
 # (but fallback when native is disabled) nio transport
 #var cloudnet.no-native false
+# Sets if netty is allowed to try some (usually) illegal reflection inorder to use direct unsafe memory.
+# This option can be used to resolve problems when sending huge files over the network.
+# Enabled by default.
+var io.netty5.tryReflectionSetAccessible true
