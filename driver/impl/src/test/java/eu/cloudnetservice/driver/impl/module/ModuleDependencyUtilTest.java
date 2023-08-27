@@ -18,6 +18,7 @@ package eu.cloudnetservice.driver.impl.module;
 
 import com.google.common.collect.Iterables;
 import eu.cloudnetservice.driver.module.Module;
+import eu.cloudnetservice.driver.module.ModuleConfiguration;
 import eu.cloudnetservice.driver.module.ModuleDependency;
 import eu.cloudnetservice.driver.module.ModuleDependencyNotFoundException;
 import eu.cloudnetservice.driver.module.ModuleDependencyOutdatedException;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ModuleDependencyUtilTest {
@@ -103,7 +105,7 @@ public class ModuleDependencyUtilTest {
   }
 
   private ModuleWrapper mockModule(ModuleProvider pro, String name, String version) {
-    return this.mockModule(pro, name, version, $ -> {
+    return this.mockModule(pro, name, version, _ -> {
     });
   }
 
@@ -115,9 +117,18 @@ public class ModuleDependencyUtilTest {
     var moduleWrapper = Mockito.mock(ModuleWrapper.class);
     Mockito.when(moduleWrapper.moduleProvider()).thenReturn(pro);
     Mockito.when(moduleWrapper.module()).thenReturn(mockedModule);
+    Mockito.when(moduleWrapper.moduleConfiguration()).then(this.mockModuleConfigurationAnswer(name, version));
 
     mod.accept(moduleWrapper);
 
     return moduleWrapper;
+  }
+
+  /**
+   * We need this because we can't mock ModuleConfiguration with Mockito
+   */
+  private Answer<ModuleConfiguration> mockModuleConfigurationAnswer(String name, String version) {
+    return _ -> new ModuleConfiguration(false, false, "eu.cloudnet", name, version, "", null, null, null, null,
+      null, null, 0, null);
   }
 }
