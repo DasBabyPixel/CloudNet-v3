@@ -412,6 +412,7 @@ public class DefaultModuleProvider implements ModuleProvider {
     dependencyPath.offerLast(moduleName);
     var repositories = this.collectModuleProvidedRepositories(moduleConfiguration);
     var dependencies = this.loadDependencies(repositories, moduleConfiguration);
+    var foundDependencies = new Tuple2<Set<URL>, Set<ModuleDependency>>(dependencies.first(), new HashSet<>());
     // make sure all dependencies are loaded.
     for (var dependency : dependencies._2()) {
       var dependencyName = dependency.name();
@@ -426,11 +427,15 @@ public class DefaultModuleProvider implements ModuleProvider {
         // can we load the dependency?
         if (!loadableModules.containsKey(dependencyName)) {
           // the dependency wasn't found.
+          if (dependency.optional()) {
+            continue;
+          }
           throw new ModuleDependencyNotFoundException(dependencyName, moduleName);
         }
         // load the dependency (and its dependencies).
         var dependencyConfiguration = loadableModules.remove(dependencyName);
         var dependencyUrl = loadableUrls.remove(dependencyName);
+        foundDependencies.second().add(dependency);
 
         // recursive load for the dependency module
         this.loadModuleAndDependencies(dependencyUrl, dependencyConfiguration, knownModules, loadableUrls,
@@ -442,7 +447,7 @@ public class DefaultModuleProvider implements ModuleProvider {
       ModuleDependencyUtil.checkDependencyVersion(moduleConfiguration, presentDependency, dependency);
     }
     // all the dependency requirements are met. Now we have to load the module
-    this.loadAndInitialize(url, dependencies, moduleConfiguration);
+    this.loadAndInitialize(url, foundDependencies, moduleConfiguration);
     // after loading the module, store it so other modules can resolve it.
     knownModules.put(moduleName, moduleConfiguration);
     // don't forget removing this module from the dependency path
