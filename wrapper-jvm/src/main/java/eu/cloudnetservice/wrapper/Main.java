@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.logging.Level;
 import lombok.NonNull;
 
 public final class Main {
@@ -68,7 +69,11 @@ public final class Main {
       .bind(Element.forType(type).requireAnnotation(Qualifiers.named("consoleArgs")))
       .toInstance(Lists.newArrayList(args)));
 
-    // boot the wrapper
-    bootInjectLayer.instance(Wrapper.class);
+    try {
+      // boot the wrapper
+      bootInjectLayer.instance(Wrapper.class);
+    } catch (Throwable throwable) {
+      Logger.getLogger("Wrapper").log(Level.SEVERE, "Failed to start wrapper", throwable);
+    }
   }
 }
