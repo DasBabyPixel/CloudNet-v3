@@ -44,6 +44,7 @@ public class ModuleDependency {
   private final String name;
   private final String version;
   private final String checksum;
+  private final boolean optional;
 
   /**
    * Creates a new module dependency instance. This dependency will require another module to be loaded before.
@@ -55,6 +56,19 @@ public class ModuleDependency {
    */
   public ModuleDependency(@NonNull String group, @NonNull String name, @NonNull String version) {
     this(null, group, name, version);
+  }
+
+  /**
+   * Creates a new module dependency instance. This dependency will require another module to be loaded before.
+   *
+   * @param group    the group of the dependency.
+   * @param name     the name of the dependency.
+   * @param version  the version of the dependency.
+   * @param optional whether the dependency is optional
+   * @throws NullPointerException if group, name or version is null.
+   */
+  public ModuleDependency(@NonNull String group, @NonNull String name, @NonNull String version, boolean optional) {
+    this(null, null, group, name, version, null, optional);
   }
 
   /**
@@ -93,7 +107,34 @@ public class ModuleDependency {
     @NonNull String group,
     @NonNull String name,
     @NonNull String version,
-    @Nullable String checksum
+    @Nullable String checksum) {
+    this(repo, url, group, name, version, checksum, false);
+  }
+
+  /**
+   * Creates a new module dependency instance. This dependency type will (when the repository is provided) require a
+   * dependency from a remote repository which needs to be downloaded. If the direct download url is provided this
+   * dependency will be loaded from the direct url. Please note: if both the repository and url is provided, the direct
+   * download url will be ignored. If neither the repository nor the direct url is not provided (in this case null) this
+   * dependency will require another module to be loaded before.
+   *
+   * @param repo     the repository in which this dependency is located.
+   * @param url      the direct download url of this dependency.
+   * @param group    the group of the dependency.
+   * @param name     the name of the dependency.
+   * @param version  the version of the dependency.
+   * @param checksum the checksum of the dependency, null if this dependency represents a module.
+   * @param optional whether the dependency is optional
+   * @throws NullPointerException if group, name or version is null.
+   */
+  public ModuleDependency(
+    @Nullable String repo,
+    @Nullable String url,
+    @NonNull String group,
+    @NonNull String name,
+    @NonNull String version,
+    @Nullable String checksum,
+    boolean optional
   ) {
     this.repo = repo;
     this.url = url;
@@ -101,6 +142,7 @@ public class ModuleDependency {
     this.name = name;
     this.version = version;
     this.checksum = checksum;
+    this.optional = optional;
   }
 
   /**
@@ -155,6 +197,15 @@ public class ModuleDependency {
    */
   public @Nullable String checksum() {
     return this.checksum;
+  }
+
+  /**
+   * Get the optionality of this dependency
+   *
+   * @return if the dependency is optional
+   */
+  public boolean optional() {
+    return this.optional;
   }
 
   /**
