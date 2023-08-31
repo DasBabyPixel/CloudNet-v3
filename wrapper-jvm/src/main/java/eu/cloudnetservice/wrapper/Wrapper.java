@@ -17,6 +17,7 @@
 package eu.cloudnetservice.wrapper;
 
 import dev.derklaro.aerogel.Order;
+import dev.derklaro.aerogel.SpecifiedInjector;
 import eu.cloudnetservice.common.language.I18n;
 import eu.cloudnetservice.common.log.LogManager;
 import eu.cloudnetservice.common.log.Logger;
@@ -25,8 +26,10 @@ import eu.cloudnetservice.common.log.defaults.DefaultFileHandler;
 import eu.cloudnetservice.common.log.defaults.DefaultLogFormatter;
 import eu.cloudnetservice.common.log.defaults.ThreadedLogRecordDispatcher;
 import eu.cloudnetservice.driver.event.EventManager;
+import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.DefaultModuleProviderHandler;
 import eu.cloudnetservice.driver.module.ModuleProvider;
+import eu.cloudnetservice.driver.module.ModuleURLClassLoader;
 import eu.cloudnetservice.driver.network.NetworkClient;
 import eu.cloudnetservice.driver.network.chunk.defaults.factory.EventChunkHandlerFactory;
 import eu.cloudnetservice.driver.network.chunk.network.ChunkedPacketListener;
@@ -51,15 +54,13 @@ import eu.cloudnetservice.wrapper.transform.netty.OldEpollDisableTransformer;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
-import java.util.jar.JarFile;
 import lombok.NonNull;
 
 /**
@@ -213,19 +214,22 @@ public final class Wrapper {
     var appFile = Path.of(consoleArgs.remove(0));
     var preLoadAppJar = Boolean.parseBoolean(consoleArgs.remove(0));
 
+    // create a custom class loader for loading the application resources
+    InjectionLayer<SpecifiedInjector> layer = InjectionLayer.specifiedChild(InjectionLayer.ext(), "application",
+      (injectionLayer, specifiedInjector) -> {
+      });
+    var loader = new ModuleURLClassLoader(appFile.toUri().toURL(), Collections.emptySet(), layer);
+    // make sure the application has access to all modules
+    loader.registerGlobally();
+
     // preload all jars in the application if requested
-    var loader = ClassLoader.getSystemClassLoader();
     if (preLoadAppJar) {
-      // create a custom class loader for loading the application resources
-      loader = new URLClassLoader(
-        new URL[]{appFile.toUri().toURL()},
-        ClassLoader.getSystemClassLoader());
       // force our loader to load all classes in the jar
       Premain.preloadClasses(appFile, loader);
     }
 
     // append the application file to the system class path
-    Premain.instrumentation.appendToSystemClassLoaderSearch(new JarFile(appFile.toFile()));
+    // Premain.instrumentation.appendToSystemClassLoaderSearch(new JarFile(appFile.toFile()));
 
     // invoke the premain method if given
     Premain.invokePremain(premainClass, loader);
