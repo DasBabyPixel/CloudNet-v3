@@ -17,6 +17,7 @@
 package eu.cloudnetservice.wrapper.transform;
 
 import lombok.NonNull;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 /**
@@ -41,4 +42,10 @@ public interface Transformer {
    * @throws NullPointerException if the given class name or class node is null.
    */
   void transform(@NonNull String classname, @NonNull ClassNode classNode);
+
+  default byte[] toByteArray(ClassNode classNode) {
+    var writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+    classNode.accept(writer);
+    return writer.toByteArray();
+  }
 }

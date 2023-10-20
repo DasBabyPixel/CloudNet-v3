@@ -20,12 +20,15 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import lombok.NonNull;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 public final class DefaultTransformerRegistry implements TransformerRegistry {
+
+  private static final Logger LOGGER = Logger.getLogger("TransformerRegistry");
 
   private final Instrumentation instrumentation;
 
@@ -75,14 +78,17 @@ public final class DefaultTransformerRegistry implements TransformerRegistry {
         var reader = new ClassReader(file);
         reader.accept(node, 0);
 
-        // call the transformer
-        this.transformer.transform(className, node);
-        // remove this transformer
-        this.inst.removeTransformer(this);
-        // re-write the class
-        var writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-        node.accept(writer);
-        return writer.toByteArray();
+        try {
+          // call the transformer
+          this.transformer.transform(className, node);
+          // remove this transformer
+          this.inst.removeTransformer(this);
+          // re-write the class
+          return this.transformer.toByteArray(node);
+        } catch (Throwable throwable) {
+          LOGGER.log(Level.SEVERE, "Failed to transform class " + className, throwable);
+          return file;
+        }
       }
       // no transformation
       return null;
