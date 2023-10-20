@@ -46,7 +46,10 @@ import eu.cloudnetservice.wrapper.network.listener.message.TaskChannelMessageLis
 import eu.cloudnetservice.wrapper.transform.TransformerRegistry;
 import eu.cloudnetservice.wrapper.transform.bukkit.BukkitCommodoreTransformer;
 import eu.cloudnetservice.wrapper.transform.bukkit.BukkitJavaVersionCheckTransformer;
+import eu.cloudnetservice.wrapper.transform.bukkit.FAWEConfigTransformer;
+import eu.cloudnetservice.wrapper.transform.bukkit.FAWEReflectionUtilsTransformer;
 import eu.cloudnetservice.wrapper.transform.bukkit.PaperConfigTransformer;
+import eu.cloudnetservice.wrapper.transform.bukkit.WorldEditJava8DetectorTransformer;
 import eu.cloudnetservice.wrapper.transform.netty.OldEpollDisableTransformer;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -184,6 +187,18 @@ public final class Wrapper {
       String.join("/", "io", "netty", "channel", "epoll"),
       "Epoll",
       new OldEpollDisableTransformer());
+    transformerRegistry.registerTransformer(
+      "com/boydti/fawe/config",
+      "Config",
+      new FAWEConfigTransformer());
+    transformerRegistry.registerTransformer(
+      "com/boydti/fawe/util",
+      "ReflectionUtils",
+      new FAWEReflectionUtilsTransformer());
+    transformerRegistry.registerTransformer(
+      "com/sk89q/worldedit/util",
+      "Java8Detector",
+      new WorldEditJava8DetectorTransformer());
   }
 
   @Inject
