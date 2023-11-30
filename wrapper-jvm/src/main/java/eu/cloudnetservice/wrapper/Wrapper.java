@@ -47,6 +47,7 @@ import eu.cloudnetservice.wrapper.transform.TransformerRegistry;
 import eu.cloudnetservice.wrapper.transform.bukkit.BukkitCommodoreTransformer;
 import eu.cloudnetservice.wrapper.transform.bukkit.BukkitJavaVersionCheckTransformer;
 import eu.cloudnetservice.wrapper.transform.bukkit.FAWEConfigTransformer;
+import eu.cloudnetservice.wrapper.transform.bukkit.FAWEJarsTransformer;
 import eu.cloudnetservice.wrapper.transform.bukkit.FAWEReflectionUtilsTransformer;
 import eu.cloudnetservice.wrapper.transform.bukkit.PaperConfigTransformer;
 import eu.cloudnetservice.wrapper.transform.bukkit.WorldEditJava8DetectorTransformer;
@@ -199,6 +200,7 @@ public final class Wrapper {
       "com/sk89q/worldedit/util",
       "Java8Detector",
       new WorldEditJava8DetectorTransformer());
+    transformerRegistry.registerTransformer("com/boydti/fawe/util", "Jars", new FAWEJarsTransformer());
   }
 
   @Inject
