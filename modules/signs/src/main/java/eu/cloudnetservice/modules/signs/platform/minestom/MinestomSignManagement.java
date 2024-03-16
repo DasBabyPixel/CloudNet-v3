@@ -37,7 +37,6 @@ import lombok.NonNull;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
-import net.minestom.server.entity.fakeplayer.FakePlayer;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceManager;
@@ -93,8 +92,8 @@ public class MinestomSignManagement extends PlatformSignManagement<Player, Tuple
               if (location != null) {
                 var vec = location.first().asVec();
                 for (var entity : location.second().getNearbyEntities(location.first(), distance)) {
-                  if (entity instanceof Player player && !(entity instanceof FakePlayer)
-                    && (conf.bypassPermission() == null || !player.hasPermission(conf.bypassPermission()))) {
+                  if (entity instanceof Player player && (conf.bypassPermission() == null || !player.hasPermission(
+                    conf.bypassPermission()))) {
                     entity.setVelocity(entity.getPosition().asVec()
                       .sub(vec)
                       .normalize()
