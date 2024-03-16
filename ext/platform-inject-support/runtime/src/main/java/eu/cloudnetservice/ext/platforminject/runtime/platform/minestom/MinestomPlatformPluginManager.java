@@ -24,6 +24,7 @@ import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.platforminject.api.defaults.BasePlatformPluginManager;
 import eu.cloudnetservice.ext.platforminject.api.util.FunctionalUtil;
 import lombok.NonNull;
+import net.hollowcube.minestom.extensions.ExtensionBootstrap;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.advancements.AdvancementManager;
@@ -67,7 +68,7 @@ public final class MinestomPlatformPluginManager extends BasePlatformPluginManag
       layer.install(createFixedBinding(MinecraftServer.getPacketProcessor(), PacketProcessor.class));
       layer.install(createFixedBinding(MinecraftServer.getInstanceManager(), InstanceManager.class));
       layer.install(createFixedBinding(MinecraftServer.getExceptionManager(), ExceptionManager.class));
-      layer.install(createFixedBinding(MinecraftServer.getExtensionManager(), ExtensionManager.class));
+      layer.install(createFixedBinding(ExtensionBootstrap.getExtensionManager(), ExtensionManager.class));
       layer.install(createFixedBinding(MinecraftServer.getBenchmarkManager(), BenchmarkManager.class));
       layer.install(createFixedBinding(MinecraftServer.getSchedulerManager(), SchedulerManager.class));
       layer.install(createFixedBinding(MinecraftServer.getConnectionManager(), ConnectionManager.class));
