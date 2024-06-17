@@ -27,7 +27,7 @@ defaultTasks("build", "test", "shadowJar")
 
 allprojects {
   version = Versions.cloudNet
-  group = "eu.cloudnetservice.cloudnet"
+  group = "eu.darkcube.cloudnetservice.cloudnet"
   description = "A modern application that can dynamically and easily deliver Minecraft oriented software"
 
   repositories {
@@ -40,6 +40,21 @@ allprojects {
 
     // must be after sonatype as sponge mirrors sonatype which leads to outdated dependencies
     maven("https://repo.spongepowered.org/maven/")
+  }
+}
+
+afterEvaluate {
+  allprojects {
+    project.plugins.withType<MavenPublishPlugin> {
+      extensions.getByType<PublishingExtension>().run {
+        repositories {
+          maven("https://nexus.darkcube.eu/repository/darkcube/") {
+            name = "DarkCube"
+            credentials(PasswordCredentials::class)
+          }
+        }
+      }
+    }
   }
 }
 
