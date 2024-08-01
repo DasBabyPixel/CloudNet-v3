@@ -27,7 +27,7 @@ defaultTasks("build", "test", "shadowJar")
 
 allprojects {
   version = Versions.cloudNet
-  group = "eu.cloudnetservice.cloudnet"
+  group = "eu.darkcube.cloudnetservice.cloudnet"
   description = "A modern application that can dynamically and easily deliver Minecraft oriented software"
 
   repositories {
@@ -43,6 +43,21 @@ allprojects {
     // ensure that we use these repositories for snapshots/releases only (improves lookup times)
     releasesOnly(maven("https://repository.derklaro.dev/releases/"))
     snapshotsOnly(maven("https://repository.derklaro.dev/snapshots/"))
+  }
+}
+
+afterEvaluate {
+  allprojects {
+    project.plugins.withType<MavenPublishPlugin> {
+      extensions.getByType<PublishingExtension>().run {
+        repositories {
+          maven("https://nexus.darkcube.eu/repository/darkcube/") {
+            name = "DarkCube"
+            credentials(PasswordCredentials::class)
+          }
+        }
+      }
+    }
   }
 }
 
