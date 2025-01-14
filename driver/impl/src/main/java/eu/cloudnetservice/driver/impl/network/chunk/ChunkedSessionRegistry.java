@@ -24,6 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A registry for chunked transfer sessions that are currently running and active.
@@ -33,6 +35,7 @@ import lombok.NonNull;
 @Singleton
 public final class ChunkedSessionRegistry {
 
+  private final Logger logger = LoggerFactory.getLogger(ChunkedSessionRegistry.class);
   private final Map<UUID, ChunkedPacketHandler> runningSessions = new ConcurrentHashMap<>();
 
   /**
@@ -44,6 +47,7 @@ public final class ChunkedSessionRegistry {
    */
   public void completeSession(@NonNull UUID sessionId) {
     this.runningSessions.remove(sessionId);
+    this.logger.info("[{}] Session complete", sessionId);
   }
 
   /**
@@ -55,6 +59,7 @@ public final class ChunkedSessionRegistry {
    */
   public void registerSession(@NonNull UUID sessionId, @NonNull ChunkedPacketHandler handler) {
     this.runningSessions.putIfAbsent(sessionId, handler);
+    this.logger.info("[{}] Custom session registered: {}", sessionId, handler);
   }
 
   /**

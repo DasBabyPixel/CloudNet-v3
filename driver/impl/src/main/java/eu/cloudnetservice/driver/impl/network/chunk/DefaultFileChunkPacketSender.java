@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a default implementation of a chunked packet sender specifically created for chunked transferring of a
@@ -37,6 +39,7 @@ public class DefaultFileChunkPacketSender extends DefaultChunkedPacketProvider i
 
   protected final InputStream source;
   protected final Consumer<Packet> packetSplitter;
+  private final Logger logger = LoggerFactory.getLogger(DefaultFileChunkPacketSender.class);
 
   /**
    * Constructs a new chunked packet sender for file transfer.
@@ -74,6 +77,8 @@ public class DefaultFileChunkPacketSender extends DefaultChunkedPacketProvider i
           this.chunkSessionInformation.transferInformation().acquire();
           var chunkPacket = ChunkedPacket.createFullChunk(chunkIndex++, backingArray, this.chunkSessionInformation);
           this.packetSplitter.accept(chunkPacket);
+          this.logger.info("[{}] Sending packet, not yet complete {}", this.chunkSessionInformation.sessionUniqueId(),
+            chunkIndex - 1);
         } else {
           // final chunk to send out, this is one is allowed to not contain as much data as the other chunks
           var chunkPacket = ChunkedPacket.createFinalChunk(
@@ -82,6 +87,7 @@ public class DefaultFileChunkPacketSender extends DefaultChunkedPacketProvider i
             backingArray,
             this.chunkSessionInformation);
           this.packetSplitter.accept(chunkPacket);
+          this.logger.info("[{}] Sending last packet {}", this.chunkSessionInformation.sessionUniqueId(), chunkIndex);
 
           // close all allocated resources used for the transfer
           this.source.close();
