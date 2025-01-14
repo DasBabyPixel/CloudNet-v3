@@ -24,6 +24,8 @@ import eu.cloudnetservice.driver.network.protocol.Packet;
 import eu.cloudnetservice.driver.network.protocol.PacketListener;
 import java.util.function.Function;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A listener for chunked packets, opening the chunked pocket sessions.
@@ -34,6 +36,7 @@ public class ChunkedPacketListener implements PacketListener {
 
   private final ChunkedSessionRegistry sessionRegistry;
   private final Function<ChunkSessionInformation, ChunkedPacketHandler> handlerFactory;
+  private final Logger logger = LoggerFactory.getLogger(ChunkedPacketListener.class);
 
   /**
    * Creates a new packet listener instance.
@@ -61,6 +64,8 @@ public class ChunkedPacketListener implements PacketListener {
     // get or create a new local session for the transfer
     var sessionHandler = this.sessionRegistry.getOrCreateSession(sessionInfo, this.handlerFactory);
     var transferComplete = sessionHandler.handleChunkPart(chunkIndex, packetContent);
+    this.logger.info("[{}] Chunk received: {} - Complete: {} - Handler: {}", sessionInfo.sessionUniqueId(), sessionInfo,
+      transferComplete, sessionHandler);
     if (transferComplete) {
       this.sessionRegistry.completeSession(sessionInfo.sessionUniqueId());
     }
