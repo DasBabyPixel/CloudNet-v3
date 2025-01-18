@@ -25,7 +25,10 @@ import eu.cloudnetservice.driver.network.protocol.PacketListenerRegistry;
 import io.netty5.channel.Channel;
 import io.netty5.util.concurrent.Promise;
 import io.netty5.util.concurrent.PromiseCombiner;
+import java.util.Arrays;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The default netty based implementation of a network channel.
@@ -34,6 +37,7 @@ import lombok.NonNull;
  */
 public final class NettyNetworkChannel extends DefaultNetworkChannel implements NetworkChannel {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(NettyNetworkChannel.class);
   private final Channel channel;
 
   /**
@@ -66,9 +70,11 @@ public final class NettyNetworkChannel extends DefaultNetworkChannel implements 
   public void sendPacket(@NonNull Packet... packets) {
     var executor = this.channel.executor();
     if (executor.inEventLoop()) {
+      LOGGER.debug("SendPackets - SYNC {}", Arrays.hashCode(packets));
       // on event loop, start all write operations
       var combiner = new PromiseCombiner(executor);
       for (var packet : packets) {
+        LOGGER.debug("SendPacket(s) {}", packet);
         var writeFuture = this.channel.write(packet);
         combiner.add(writeFuture);
       }
@@ -78,6 +84,7 @@ public final class NettyNetworkChannel extends DefaultNetworkChannel implements 
       combiner.finish(promise);
       promise.asFuture().addListener(_ -> this.channel.flush());
     } else {
+      LOGGER.debug("SendPackets - MOVE TO SYNC {}", Arrays.hashCode(packets));
       // this has to be called from event loop as promise combiner is not thread safe
       executor.execute(() -> this.sendPacket(packets));
     }
@@ -88,6 +95,7 @@ public final class NettyNetworkChannel extends DefaultNetworkChannel implements 
    */
   @Override
   public void sendPacket(@NonNull Packet packet) {
+    LOGGER.debug("SendPacket {}", packet);
     this.channel.writeAndFlush(packet);
   }
 
@@ -96,6 +104,7 @@ public final class NettyNetworkChannel extends DefaultNetworkChannel implements 
    */
   @Override
   public void sendPacketSync(@NonNull Packet packet) {
+    LOGGER.debug("SendPacketSync {}", packet);
     var future = this.channel.writeAndFlush(packet);
     if (!future.executor().inEventLoop()) {
       // only await the future if we're not currently in the event loop
