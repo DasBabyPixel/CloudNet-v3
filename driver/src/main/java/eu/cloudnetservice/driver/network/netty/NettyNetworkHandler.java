@@ -76,6 +76,7 @@ public abstract class NettyNetworkHandler extends SimpleChannelInboundHandler<Ba
    */
   @Override
   protected void messageReceived(@NonNull ChannelHandlerContext ctx, @NonNull BasePacket msg) {
+    LOGGER.debug("Received packet {}: {}", Thread.currentThread().getName(), msg);
     // post directly if the packet has a high priority
     if (msg.prioritized()) {
       this.doHandlePacket(msg);
@@ -106,6 +107,8 @@ public abstract class NettyNetworkHandler extends SimpleChannelInboundHandler<Ba
         }
       }
 
+      LOGGER.debug("HandlePacket {} {}: {}", Thread.currentThread().getName(), this.channel.handler().getClass().getSimpleName(), packet);
+
       // check if any handler can handle the incoming packet
       if (this.channel.handler().handlePacketReceive(this.channel, packet)
         && this.channel.packetRegistry().handlePacket(this.channel, packet)) {
@@ -114,7 +117,7 @@ public abstract class NettyNetworkHandler extends SimpleChannelInboundHandler<Ba
 
       // release the packet content now, there are no handlers that are accepting the message
       packet.content().forceRelease();
-    } catch (Exception exception) {
+    } catch (Throwable exception) {
       LOGGER.error("Exception whilst handling packet {}", packet, exception);
     }
   }

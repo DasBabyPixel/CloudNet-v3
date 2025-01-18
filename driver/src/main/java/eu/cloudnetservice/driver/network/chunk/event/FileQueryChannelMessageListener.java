@@ -92,7 +92,7 @@ public final class FileQueryChannelMessageListener {
       event.binaryResponse(responseData);
     } else {
       // finish the response handler construct, start the transfer & respond with a success response
-      this.logger.info("[{}] Responding to file request", chunkedSessionId);
+      this.logger.info("[{}] Responding to file request {}", chunkedSessionId, channel.channelId());
       responseHandlerBuilder
         .toChannels(channel)
         .chunkSize(chunkSize)

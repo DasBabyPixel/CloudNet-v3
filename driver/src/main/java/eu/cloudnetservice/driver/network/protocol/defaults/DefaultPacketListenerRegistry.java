@@ -21,6 +21,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.network.NetworkChannel;
+import eu.cloudnetservice.driver.network.def.NetworkConstants;
 import eu.cloudnetservice.driver.network.protocol.Packet;
 import eu.cloudnetservice.driver.network.protocol.PacketListener;
 import eu.cloudnetservice.driver.network.protocol.PacketListenerRegistry;
@@ -31,6 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The default implementation of the packet listener registry.
@@ -39,6 +42,8 @@ import org.jetbrains.annotations.UnmodifiableView;
  */
 public class DefaultPacketListenerRegistry implements PacketListenerRegistry {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPacketListenerRegistry.class);
+  
   private final PacketListenerRegistry parent;
   private final Multimap<Integer, PacketListener> listeners;
 
@@ -166,6 +171,9 @@ public class DefaultPacketListenerRegistry implements PacketListenerRegistry {
 
     // get the listeners that are registered in this packet registry for the packet channel
     var registeredListeners = this.listeners.get(packet.channel());
+    if (packet.channel() == NetworkConstants.CHUNKED_PACKET_COM_CHANNEL) {
+      LOGGER.info("Receive on packet-com channel");
+    }
     if (registeredListeners.isEmpty()) {
       return parentDidHandle;
     }
