@@ -412,7 +412,7 @@ public class DefaultModuleProvider implements ModuleProvider {
     dependencyPath.offerLast(moduleName);
     var repositories = this.collectModuleProvidedRepositories(moduleConfiguration);
     var dependencies = this.loadDependencies(repositories, moduleConfiguration);
-    var foundDependencies = new Tuple2<Set<URL>, Set<ModuleDependency>>(dependencies.first(), new HashSet<>());
+    var foundDependencies = new Tuple2<Set<URL>, Set<ModuleDependency>>(dependencies._1(), new HashSet<>());
     // make sure all dependencies are loaded.
     for (var dependency : dependencies._2()) {
       var dependencyName = dependency.name();
@@ -435,7 +435,7 @@ public class DefaultModuleProvider implements ModuleProvider {
         // load the dependency (and its dependencies).
         var dependencyConfiguration = loadableModules.remove(dependencyName);
         var dependencyUrl = loadableUrls.remove(dependencyName);
-        foundDependencies.second().add(dependency);
+        foundDependencies._2().add(dependency);
 
         // recursive load for the dependency module
         this.loadModuleAndDependencies(dependencyUrl, dependencyConfiguration, knownModules, loadableUrls,
