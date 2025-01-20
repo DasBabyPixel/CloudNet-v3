@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
+import java.util.zip.ZipInputStream;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,6 +94,19 @@ public abstract class RemoteTemplateStorage implements TemplateStorage {
     }
   }
 
+  @Override
+  public @NonNull CompletableFuture<Boolean> deployDirectoryAsync(@NonNull ServiceTemplate target,
+    @NonNull Path directory, @Nullable Predicate<Path> filter) {
+    return TaskUtil.supplyAsync(() -> this.deployDirectory(target, directory, filter));
+  }
+
+  @Override
+  public @NonNull CompletableFuture<@Nullable ZipInputStream> openZipInputStreamAsync(
+    @NonNull ServiceTemplate template) {
+    return this.zipTemplateAsync(template)
+      .thenApply(inputStream -> inputStream == null ? null : new ZipInputStream(inputStream));
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -147,6 +161,12 @@ public abstract class RemoteTemplateStorage implements TemplateStorage {
     return this.openLocalOutputStream(template, path, FileUtil.createTempFile(), true);
   }
 
+  @Override
+  public @NonNull CompletableFuture<OutputStream> appendOutputStreamAsync(@NonNull ServiceTemplate template,
+    @NonNull String path) {
+    return TaskUtil.supplyAsync(() -> this.appendOutputStream(template, path));
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -156,6 +176,12 @@ public abstract class RemoteTemplateStorage implements TemplateStorage {
     @NonNull String path
   ) throws IOException {
     return this.openLocalOutputStream(template, path, FileUtil.createTempFile(), false);
+  }
+
+  @Override
+  public @NonNull CompletableFuture<OutputStream> newOutputStreamAsync(@NonNull ServiceTemplate template,
+    @NonNull String path) {
+    return TaskUtil.supplyAsync(() -> this.newOutputStream(template, path));
   }
 
   /**

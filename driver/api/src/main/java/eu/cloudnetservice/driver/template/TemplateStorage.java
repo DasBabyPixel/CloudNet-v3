@@ -352,7 +352,7 @@ public interface TemplateStorage extends AutoCloseable, Named {
    * @throws NullPointerException if the given template is null.
    */
   @NonNull
-  CompletableFuture<InputStream> zipTemplateAsync(@NonNull ServiceTemplate template);
+  CompletableFuture<@Nullable InputStream> zipTemplateAsync(@NonNull ServiceTemplate template);
 
   /**
    * Pulls the data of the given template into a temporary directory and zip it. When the returned input stream is
@@ -363,7 +363,7 @@ public interface TemplateStorage extends AutoCloseable, Named {
    * @throws NullPointerException if the given template is null.
    */
   @NonNull
-  CompletableFuture<ZipInputStream> openZipInputStreamAsync(@NonNull ServiceTemplate template);
+  CompletableFuture<@Nullable ZipInputStream> openZipInputStreamAsync(@NonNull ServiceTemplate template);
 
   /**
    * Deletes the given template completely from this template storage.
