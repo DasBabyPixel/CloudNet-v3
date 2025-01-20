@@ -116,7 +116,8 @@ public class DockerizedService extends JVMService {
       configuration,
       manager,
       eventManager,
-      logCache, versionProvider,
+      logCache,
+      versionProvider,
       serviceConfigurationPreparer);
 
     this.dockerClient = dockerClient;
