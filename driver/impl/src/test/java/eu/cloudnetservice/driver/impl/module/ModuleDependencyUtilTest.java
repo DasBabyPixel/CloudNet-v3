@@ -18,6 +18,7 @@ package eu.cloudnetservice.driver.impl.module;
 
 import com.google.common.collect.Iterables;
 import eu.cloudnetservice.driver.module.Module;
+import eu.cloudnetservice.driver.module.ModuleConfiguration;
 import eu.cloudnetservice.driver.module.ModuleDependency;
 import eu.cloudnetservice.driver.module.ModuleDependencyNotFoundException;
 import eu.cloudnetservice.driver.module.ModuleDependencyOutdatedException;
@@ -104,7 +105,7 @@ public class ModuleDependencyUtilTest {
   }
 
   private ModuleWrapper mockModule(ModuleProvider pro, String name, String version) {
-    return this.mockModule(pro, name, version, $ -> {
+    return this.mockModule(pro, name, version, _ -> {
     });
   }
 
@@ -127,7 +128,7 @@ public class ModuleDependencyUtilTest {
    * We need this because we can't mock ModuleConfiguration with Mockito
    */
   private Answer<ModuleConfiguration> mockModuleConfigurationAnswer(String name, String version) {
-    return invocation -> new ModuleConfiguration(false, false, "eu.cloudnet", name, version, "", null, null, null, null,
+    return _ -> new ModuleConfiguration(false, false, "eu.cloudnet", name, version, "", null, null, null, null,
       null, null, 0, null);
   }
 }
