@@ -97,6 +97,10 @@ public abstract class NettyNetworkHandler extends SimpleChannelInboundHandler<Ba
         if (task != null) {
           // complete the waiting task
           task.complete(packet);
+          
+          // we can't add a packet content released check here, because the
+          // query handler may not be registered to the future.
+          // Basically, the query response can come before the handler has been registered
 
           // don't post a query response packet to another handler at all
           // the packet might be inbound - we might be expected to respond
@@ -107,6 +111,9 @@ public abstract class NettyNetworkHandler extends SimpleChannelInboundHandler<Ba
       // check if any handler can handle the incoming packet
       if (this.channel.handler().handlePacketReceive(this.channel, packet)
         && this.channel.packetRegistry().handlePacket(this.channel, packet)) {
+        if (packet.content().accessible()) {
+          LOGGER.error("Listeners did not release packet content: {}", packet);
+        }
         return;
       }
 
