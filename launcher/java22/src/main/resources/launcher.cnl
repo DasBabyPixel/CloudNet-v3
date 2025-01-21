@@ -95,3 +95,12 @@ var cloudnet.node.memory 256
 # These transports are platform optimized, generally generate less garbage and improve performance over the non-native
 # (but fallback when native is disabled) nio transport
 #var cloudnet.no-native false
+
+#
+# Extra properties. Only touch if you know what you are doing!
+#
+
+# Greatly reduces the maximum size (default=infinite) of buffers cached by the jvm. These cached buffers can cause
+# OutOfMemoryErrors, and with many netty threads existing, each thread with its own cache, capable of storing hundreds
+# to thousands of buffers each, this adds up.
+#var jdk.nio.maxCachedBufferSize 512
