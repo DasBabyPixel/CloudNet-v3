@@ -78,7 +78,14 @@ public class WrapperMessenger implements CloudMessenger {
   ) {
     return this.networkClient.firstChannel().sendQueryAsync(new ChannelMessagePacket(message, true))
       .thenApply(Packet::content)
-      .thenApply(data -> Objects.requireNonNullElse(data.readObject(MESSAGES), List.of()));
+      .thenApply(data -> {
+        try {
+          return Objects.requireNonNullElse(data.readObject(MESSAGES), List.of());
+        } finally {
+          // make sure the packet content is released
+          data.forceRelease();
+        }
+      });
   }
 
   @Override

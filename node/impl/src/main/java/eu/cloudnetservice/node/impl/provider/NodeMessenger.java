@@ -143,9 +143,16 @@ public class NodeMessenger implements CloudMessenger {
 
         channel.sendQueryAsync(new ChannelMessagePacket(message, false)).whenComplete((packet, th) -> {
           // check if we got an actual result from the request
-          if (th == null && packet.readable()) {
-            // add all resulting messages we got
-            result.addAll(packet.content().readObject(COL_MSG));
+          try {
+            if (th == null && packet.readable()) {
+              // add all resulting messages we got
+              result.addAll(packet.content().readObject(COL_MSG));
+            }
+          } finally {
+            if (packet != null) {
+              // make sure to release the packet buffer
+              packet.content().forceRelease();
+            }
           }
 
           // count down - one channel responded
