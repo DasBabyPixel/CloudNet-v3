@@ -337,4 +337,9 @@ public class NettyImmutableDataBuf implements DataBuf {
 
     return result;
   }
+
+  @Override
+  public String toString() {
+    return "%s[readableBytes=%d]".formatted(this.getClass().getSimpleName(), this.buffer.readableBytes());
+  }
 }
