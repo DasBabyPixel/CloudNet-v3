@@ -48,12 +48,12 @@ public final class NettyNioBufferReleasingAllocator implements BufferAllocator, 
   /**
    * Constructs a new buffer allocator instance. All instances are backed by a byte buffer memory manager.
    */
-  public NettyNioBufferReleasingAllocator() {
-    this.manager = new ByteBufferMemoryManager();
+  public NettyNioBufferReleasingAllocator(@NonNull ByteBufferMemoryManager manager) {
+    this.manager = manager;
   }
 
   /**
-   * Get if this allocator can free direct buffers. If this method returns false, this allocator shouldn't be used as it
+   * Get if this allocator can free direct buffers. If this method returns true, this allocator shouldn't be used as it
    * does nothing. Use the default netty allocator instead.
    *
    * @return if this allocator is able to free direct nio buffers.
@@ -170,7 +170,7 @@ public final class NettyNioBufferReleasingAllocator implements BufferAllocator, 
         try {
           DIRECT_BUFFER_CLEANER.invokeExact(recoverableMemory);
         } catch (Throwable exception) {
-          LOGGER.debug("Unable to free direct ByteBuf using Unsafe.invokeCleaner: {}", exception.getMessage());
+          LOGGER.error("Unable to free direct ByteBuf using Unsafe.invokeCleaner: {}", exception.getMessage());
         }
       }
     }

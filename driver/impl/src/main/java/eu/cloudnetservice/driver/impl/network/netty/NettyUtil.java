@@ -25,6 +25,8 @@ import io.netty5.buffer.Buffer;
 import io.netty5.buffer.BufferAllocator;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.DefaultBufferAllocators;
+import io.netty5.buffer.MemoryManager;
+import io.netty5.buffer.bytebuffer.ByteBufferMemoryManager;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelFactory;
 import io.netty5.channel.EventLoopGroup;
@@ -80,7 +82,8 @@ public final class NettyUtil {
     if ("netty-default".equals(preferredBufferAllocator) || NettyNioBufferReleasingAllocator.notAbleToFreeBuffers()) {
       SELECTED_BUFFER_ALLOCATOR = DefaultBufferAllocators.offHeapAllocator();
     } else {
-      SELECTED_BUFFER_ALLOCATOR = new NettyNioBufferReleasingAllocator();
+      System.setProperty("io.netty5.buffer.MemoryManager", ByteBufferMemoryManager.class.getName());
+      SELECTED_BUFFER_ALLOCATOR = new NettyNioBufferReleasingAllocator(((ByteBufferMemoryManager) MemoryManager.instance()));
     }
 
     // select the transport type to use for netty
