@@ -21,8 +21,12 @@ import io.netty5.buffer.Buffer;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.handler.codec.ByteToMessageDecoder;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class VarInt32FrameDecoder extends ByteToMessageDecoder {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(VarInt32FrameDecoder.class);
 
   /**
    * {@inheritDoc}
@@ -42,12 +46,16 @@ public final class VarInt32FrameDecoder extends ByteToMessageDecoder {
       return;
     }
 
-    // skip empty packets silently
-    if (length <= 0) {
-      // check if there are bytes to skip
-      if (in.readableBytes() > 0) {
-        in.skipReadableBytes(in.readableBytes());
-      }
+    if (length == 0) {
+      // empty packet length should not be possible. Someone didn't follow the protocol. (Should we maybe even disconnect?)
+      LOGGER.error("Skipped incoming packet with length 0");
+      return;
+    } else if (length < 0) {
+      // negative packet length is not a good omen... Someone didn't follow the protocol. (Should we maybe even disconnect?)
+      LOGGER.error("Incoming packet had negative length {} - readableBytes: {}", length, in.readableBytes());
+      // try to only skip 1 byte. That way we should at some point arrive at a valid state again
+      // should never happen to begin with
+      in.readerOffset(readerIndex + 1);
       return;
     }
 

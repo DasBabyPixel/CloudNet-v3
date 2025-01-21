@@ -24,10 +24,13 @@ import io.netty5.util.concurrent.Future;
 import io.netty5.util.concurrent.Promise;
 import io.netty5.util.concurrent.PromiseCombiner;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class VarInt32FramePrepender extends ChannelHandlerAdapter {
 
   public static final VarInt32FramePrepender INSTANCE = new VarInt32FramePrepender();
+  private static final Logger LOGGER = LoggerFactory.getLogger(VarInt32FramePrepender.class);
 
   /**
    * {@inheritDoc}
@@ -37,6 +40,13 @@ public final class VarInt32FramePrepender extends ChannelHandlerAdapter {
     if (msg instanceof Buffer packetDataBuffer) {
       // first write the buffer that contains the length of the following buffer
       var length = packetDataBuffer.readableBytes();
+      if (length == 0) {
+        // empty packet should not happen. This indicates a bug in the NettyPacketEncoder,
+        // which should rather not submit a Buffer than submit an empty one.
+        // Let's also log a stack trace, may make things easier to debug if they break.
+        LOGGER.error("Skip packet with length 0", new Exception("Thread dump"));
+        return ctx.newFailedFuture(new IllegalArgumentException("Send buffer with readableBytes=0"));
+      }
       var encodedLengthFieldLength = NettyUtil.varIntBytes(length);
       var lengthBuffer = ctx.bufferAllocator().allocate(encodedLengthFieldLength);
       NettyUtil.writeVarInt(lengthBuffer, length);

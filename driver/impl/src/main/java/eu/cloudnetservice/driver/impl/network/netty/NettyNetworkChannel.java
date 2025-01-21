@@ -26,6 +26,8 @@ import io.netty5.channel.Channel;
 import io.netty5.util.concurrent.Promise;
 import io.netty5.util.concurrent.PromiseCombiner;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The default netty based implementation of a network channel.
@@ -34,6 +36,7 @@ import lombok.NonNull;
  */
 public final class NettyNetworkChannel extends DefaultNetworkChannel implements NetworkChannel {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(NettyNetworkChannel.class);
   private final Channel channel;
 
   /**
@@ -88,7 +91,13 @@ public final class NettyNetworkChannel extends DefaultNetworkChannel implements 
    */
   @Override
   public void sendPacket(@NonNull Packet packet) {
-    this.channel.writeAndFlush(packet);
+    var future = this.channel.writeAndFlush(packet);
+    future.addListener(f -> {
+      if (!f.isSuccess()) {
+        var cause = f.cause();
+        LOGGER.error("Failed to send packet", cause);
+      }
+    });
   }
 
   /**
@@ -97,6 +106,12 @@ public final class NettyNetworkChannel extends DefaultNetworkChannel implements 
   @Override
   public void sendPacketSync(@NonNull Packet packet) {
     var future = this.channel.writeAndFlush(packet);
+    future.addListener(f -> {
+      if (!f.isSuccess()) {
+        var cause = f.cause();
+        LOGGER.error("Failed to send packet", cause);
+      }
+    });
     if (!future.executor().inEventLoop()) {
       // only await the future if we're not currently in the event loop
       // as this would deadlock the write operations triggered previously

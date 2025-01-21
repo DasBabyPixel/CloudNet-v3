@@ -22,9 +22,12 @@ import eu.cloudnetservice.driver.event.events.channel.ChannelMessageReceiveEvent
 import eu.cloudnetservice.driver.impl.network.NetworkConstants;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.driver.network.buffer.DataBufFactory;
+import eu.cloudnetservice.driver.network.chunk.TransferStatus;
 import eu.cloudnetservice.driver.network.chunk.event.FileQueryRequestEvent;
 import jakarta.inject.Inject;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A listener for channel messages that request a query transfer of a file.
@@ -33,6 +36,7 @@ import lombok.NonNull;
  */
 public final class FileQueryChannelMessageListener {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileQueryChannelMessageListener.class);
   private final EventManager eventManager;
 
   /**
@@ -93,7 +97,14 @@ public final class FileQueryChannelMessageListener {
         .transferChannel("query:dummy")
         .sessionUniqueId(chunkedSessionId)
         .build()
-        .transferChunkedData();
+        .transferChunkedData()
+        .whenComplete((transferStatus, throwable) -> {
+          if (throwable != null) {
+            LOGGER.error("Failed to transfer data", throwable);
+          } else if (transferStatus != TransferStatus.SUCCESS) {
+            LOGGER.error("Transfer finished on TransferStatus {}", transferStatus);
+          }
+        });
       var responseData = constructRequestResponse(true);
       event.binaryResponse(responseData);
     }
