@@ -23,8 +23,10 @@ import eu.cloudnetservice.driver.network.NetworkChannelHandler;
 import eu.cloudnetservice.driver.network.protocol.Packet;
 import eu.cloudnetservice.driver.network.protocol.PacketListenerRegistry;
 import io.netty5.channel.Channel;
+import io.netty5.util.concurrent.Future;
 import io.netty5.util.concurrent.Promise;
 import io.netty5.util.concurrent.PromiseCombiner;
+import java.nio.channels.ClosedChannelException;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,19 +87,27 @@ public final class NettyNetworkChannel extends DefaultNetworkChannel implements 
       executor.execute(() -> this.sendPacket(packets));
     }
   }
+  
+  private Future<Void> writeAndFlush(@NonNull Packet packet) {
+    var future = this.channel.writeAndFlush(packet);
+    future.addListener(f -> {
+      if (!f.isSuccess()) {
+        var cause = f.cause();
+        // ignore ClosedChannelException, when node stops this sometimes happens
+        if (!(cause instanceof ClosedChannelException)) {
+          LOGGER.error("Failed to send packet", cause);
+        }
+      }
+    });
+    return future;
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
   public void sendPacket(@NonNull Packet packet) {
-    var future = this.channel.writeAndFlush(packet);
-    future.addListener(f -> {
-      if (!f.isSuccess()) {
-        var cause = f.cause();
-        LOGGER.error("Failed to send packet", cause);
-      }
-    });
+    this.writeAndFlush(packet);
   }
 
   /**
@@ -105,13 +115,7 @@ public final class NettyNetworkChannel extends DefaultNetworkChannel implements 
    */
   @Override
   public void sendPacketSync(@NonNull Packet packet) {
-    var future = this.channel.writeAndFlush(packet);
-    future.addListener(f -> {
-      if (!f.isSuccess()) {
-        var cause = f.cause();
-        LOGGER.error("Failed to send packet", cause);
-      }
-    });
+    var future = this.writeAndFlush(packet);
     if (!future.executor().inEventLoop()) {
       // only await the future if we're not currently in the event loop
       // as this would deadlock the write operations triggered previously
